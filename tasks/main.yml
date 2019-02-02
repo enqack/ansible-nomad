@@ -13,9 +13,9 @@
 - name: Gather facts from other servers
   setup:
   delegate_to: "{{ item }}"
-  delegate_facts: True
+  delegate_facts: true
   with_items: "{{ nomad_servers | difference(play_hosts) }}"
-  ignore_errors: yes
+  ignore_errors: true
   when: nomad_gather_server_facts | bool
 
 - name: Expose bind_address, advertise_address and node_role as facts
@@ -63,6 +63,8 @@
     owner: root
     group: root
     mode: 0644
+  notify:
+    - restart nomad
 
 - name: Server configuration
   template:
@@ -73,6 +75,8 @@
     mode: 0644
   when:
     - _nomad_node_server | bool
+  notify:
+    - restart nomad
 
 - name: Client configuration
   template:
@@ -83,6 +87,8 @@
     mode: 0644
   when:
     - _nomad_node_client | bool
+  notify:
+    - restart nomad
 
 - name: Custom configuration
   template:
@@ -93,6 +99,8 @@
     mode: 0644
   when:
     - nomad_config_custom is defined
+  notify:
+    - restart nomad
 
 - name: SYSV init script
   template:
@@ -121,8 +129,12 @@
     mode: 0644
   when: ansible_service_mgr == "systemd"
 
+- name: reload systemd daemon
+  shell: systemctl daemon-reload
+  when: ansible_service_mgr == "systemd"
+
 - name: Start Nomad
   service:
     name: nomad
-    enabled: yes
+    enabled: true
     state: started

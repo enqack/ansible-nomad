@@ -17,8 +17,8 @@ in a development environment based on Vagrant and VirtualBox. See
 This role requires a Debian, RHEL, or Ubuntu distribution; the role is tested
 with the following specific software versions:
 
-* Ansible: 2.3.0.0
-* nomad: 0.5.6
+* Ansible: 2.6.4
+* nomad: 0.8.7
 * CentOS: 7
 * Debian: 8
 * RHEL: 7
@@ -35,7 +35,7 @@ The role defines most of its variables in `defaults/main.yml`:
 ### `nomad_version`
 
 - Nomad version to install
-- Default value: **0.5.6**
+- Default value: **0.8.7**
 
 ### `nomad_architecture_map`
 
@@ -101,7 +101,7 @@ The role defines most of its variables in `defaults/main.yml`:
 ### `nomad_user`
 
 - Nomad OS username
-- Default value: **nomad**
+- Default value: **root**
 
 ### `nomad_manage_group`
 
@@ -228,6 +228,11 @@ The role defines most of its variables in `defaults/main.yml`:
 
 - Max kill timeout
 - Default value: **30s**
+
+### `nomad_network_interface`
+
+- Nomad scheduler will choose from the IPs of this interface for allocating tasks
+- Default value: none
 
 ### `nomad_network_speed`
 
@@ -362,15 +367,100 @@ in many Ansible versions, so this feature might not always work.
   assumes consul default ports etc.
 - Default value: **False**
 
+### `nomad_consul_address`
+
+- The address of your consul API, use it in combination with nomad_use_consul=True
+- Default value: **localhost:8500**
+
+### `nomad_consul_servers_service_name`
+
+- The name of the consul service for your nomad servers
+- Default value: **nomad-servers**
+
+### `nomad_consul_clients_service_name`
+
+- The name of the consul service for your nomad clients
+- Default value: **nomad-clients**
+
 ### `nomad_bootstrap_expect`
 
 - Specifies the number of server nodes to wait for before bootstrapping.
 - Default value: `{{ nomad_servers | count or 3 }}}
 
+### `nomad_acl_enabled`
+
+- Enable ACLs
+- Default value: **no**
+
+### `nomad_acl_token_ttl`
+
+- TTL for tokens
+- Default value: **"30s"**
+
+### `nomad_acl_policy_ttl`
+
+- TTL for policies
+- Default value: **"30s"**
+
+### `nomad_acl_replication_token`
+
+- Token to use for acl replication on non authoritive servers
+- Default value: **""**
+
+### `nomad_vault_enabled`
+
+- Enable vault
+- Default value: **no**
+
 ### `nomad_vault_address`
 
 - Vault address to use
 - Default value: `{{ vault_address | default('0.0.0.0') }}`
+
+### `nomad_vault_allow_unauthenticated`
+
+- Allow users to use vault without providing their own token
+- Default value: **yes**
+
+### `nomad_vault_create_from_role`
+
+- Role to create tokens from
+- Default value: **""**
+
+### `nomad_vault_ca_file`
+
+- Path of CA cert to use with vault
+- Default value: **""**
+
+### `nomad_vault_ca_path`
+
+- Path of a folder containing CA cert(s) to use with vault
+- Default value: **""**
+
+### `nomad_vault_cert_file`
+
+- Path to a certificate to use with vault
+- Default value: **""**
+
+### `nomad_vault_key_file`
+
+- Path to a private key file to use with vault
+- Default value: **""**
+
+### `nomad_vault_tls_server_name`
+
+- Optional string used to set SNI host when connecting to vault
+- Default value: **""**
+
+### `nomad_vault_tls_skip_verify`
+
+- Specifies if SSL peer validation should be enforced
+- Default value: **no**
+
+### `nomad_vault_token`
+
+- Vault token used by nomad
+- Default value: **""**
 
 ### `nomad_docker_enable`
 
@@ -381,6 +471,21 @@ in many Ansible versions, so this feature might not always work.
 
 - Run dmsetup on ubuntu (only if docker is enabled)
 - Default value: **yes**
+
+### `nomad_ca_file`
+
+- Use a ca for tls connection, nomad_cert_file and nomad_key_file are needed
+- Default value: **""**
+
+### `nomad_cert_file`
+
+- Use a certificate for tls connection, nomad_ca_file and nomad_key_file are needed
+- Default value: **""**
+
+### `nomad_key_file`
+
+- Use a key for tls connection, nomad_cert_file and nomad_key_file are needed
+- Default value: **""**
 
 #### Custom Configuration Section
 
@@ -406,7 +511,8 @@ An example usage for enabling `vault`:
 ## Dependencies
 
 Ansible requires GNU tar and this role performs some local use of the
-unarchive module, so ensure that your system has `gtar` installed.
+unarchive module, so ensure that your system has `gtar`/`unzip` installed.
+Jinja2 templates use ipaddr filter that need `netaddr` python library.
 
 ## Example Playbook
 
